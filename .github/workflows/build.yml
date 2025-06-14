@@ -21,8 +21,11 @@ jobs:
       - name: Uninstall old trmnl_preview gem
         run: gem uninstall trmnl_preview -aIx || true
 
+      - name: Uninstall old xdg gem
+        run: gem uninstall xdg -aIx || true
+
       - name: Install trmnl_preview 0.5.4
-        run: gem install trmnl_preview -v 0.5.4 --force
+        run: gem install trmnl_preview -v 0.5.4
 
       - name: Run trmnlp build
         run: trmnlp build
