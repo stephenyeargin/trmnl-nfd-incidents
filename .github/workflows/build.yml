@@ -24,8 +24,5 @@ jobs:
       - name: Install trmnl_preview 0.5.4
         run: gem install trmnl_preview -v 0.5.4 --force
 
-      - name: Install xdg 6.6.0
-        run: gem install xdg -v 6.6.0
-
       - name: Run trmnlp build
         run: trmnlp build
