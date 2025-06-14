@@ -47,4 +47,4 @@ jobs:
           EOF
 
       - name: Run trmnlp push
-        run: bundle exec trmnlp push
+        run: bundle exec trmnlp push --force
