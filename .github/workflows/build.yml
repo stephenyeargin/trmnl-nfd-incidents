@@ -18,8 +18,13 @@ jobs:
         with:
           ruby-version: '3.2'
 
-      - name: Install trmnl_preview gem
-        run: gem install trmnl_preview
+      - name: Update RubyGems and clear gem cache
+        run: |
+          gem update --system
+          gem uninstall trmnl_preview -aIx || true
+
+      - name: Install trmnl_preview 0.5.4
+        run: gem install trmnl_preview -v 0.5.4
 
       - name: Run trmnlp build
         run: trmnlp build
