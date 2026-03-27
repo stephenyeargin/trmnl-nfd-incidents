@@ -1,25 +1,23 @@
 <div class="layout layout--row layout--top">
-  <div class="column">
-    <table class="table table--condensed" id="dispatch-table" style="width:100%">
-      <thead>
-        <tr>
-          <th>
-            <span class="title title--small">Incident</span></th>
-          <th>
-            <span class="title title--small">Reported</span></th>
-          <th>
-            <span class="title title--small">Zip</span></th>
-          <th>
-            <span class="title title--small">Units</span></th>
-        </tr>
-      </thead>
-      <tbody id="dispatch-tbody">
-        <tr>
-          <td colspan="5" class="text--center">Loading...</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <table class="table table--condensed" id="dispatch-table" style="width:100%" data-table-limit="true">
+    <thead>
+      <tr>
+        <th>
+          <span class="title title--small lg:title--base">Incident</span></th>
+        <th>
+          <span class="title title--small lg:title--base">Reported</span></th>
+        <th>
+          <span class="title title--small lg:title--base">Zip</span></th>
+        <th>
+          <span class="title title--small lg:title--base">Units</span></th>
+      </tr>
+    </thead>
+    <tbody id="dispatch-tbody">
+      <tr>
+        <td colspan="5" class="text--center">Loading...</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 <div class="title_bar">
@@ -27,7 +25,7 @@
   <span class="title">Nashville Fire Dept. Active Incidents</span>
 </div>
 
-{% render "table_javascript" count: 12, size: "narrow", trmnl: trmnl %}
+{% render "table_javascript" size: "narrow", trmnl: trmnl %}
 
 <script>
   const data = {
