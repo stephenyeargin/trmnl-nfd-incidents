@@ -1,27 +1,59 @@
 {% template table_javascript %}
 <script>
+(function() {
+  if (window.nfdLoadDispatches) {
+    return;
+  }
+
+  const preferredTimeZone = '{{ trmnl.user.time_zone_iana | default: "" }}';
+
+  function resolveTimeZone(tz) {
+    if (!tz) {
+      return null;
+    }
+    try {
+      new Intl.DateTimeFormat([], { timeZone: tz });
+      return tz;
+    } catch (_err) {
+      return null;
+    }
+  }
 
   function formatTime(ts) {
-    if (!ts)
+    if (!ts) {
       return '-';
+    }
+
     const d = new Date(ts);
-    return d.toLocaleTimeString([], {
+    const options = {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true,
-      timeZone: '{{ trmnl.user.time_zone_iana }}'
-    });
+      hour12: true
+    };
+    const safeTimeZone = resolveTimeZone(preferredTimeZone);
+    if (safeTimeZone) {
+      options.timeZone = safeTimeZone;
+    }
+
+    return d.toLocaleTimeString([], options);
   }
-  function loadDispatches() {
+
+  window.nfdLoadDispatches = function(data) {
     const tbody = document.getElementById('dispatch-tbody');
+    if (!tbody) {
+      return;
+    }
+
+    const features = (data && Array.isArray(data.features)) ? data.features : [];
     tbody.innerHTML = '';
-    if (!data.features || !data.features.length) {
+    if (!features.length) {
       tbody.innerHTML = '<tr><td colspan="4" class="py--20"><span class="title">No active incidents.</span></td></tr>';
       return;
     }
+
     // Deduplicate by event_number and aggregate UNIT_IDs
     const events = {};
-    data.features.forEach(f => {
+    features.forEach(f => {
       const p = f.properties;
       if (!events[p.event_number]) {
         events[p.event_number] = {
@@ -58,6 +90,7 @@
         {% endif %}
         tbody.appendChild(tr);
       });
-  }
+  };
+})();
 </script>
 {% endtemplate %}

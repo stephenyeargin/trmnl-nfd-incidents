@@ -30,8 +30,8 @@
 {% render "table_javascript" size: "wide", trmnl: trmnl %}
 
 <script>
-  const data = {
+  window.nfdData = {
     features: {{ features | json }}
   };
-  loadDispatches();
+  window.nfdLoadDispatches(window.nfdData);
 </script>

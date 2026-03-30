@@ -28,10 +28,10 @@
 {% render "table_javascript" size: "narrow", trmnl: trmnl %}
 
 <script>
-  const data = {
+  window.nfdData = {
     features: {{ features | json }}
   };
-  loadDispatches();
+  window.nfdLoadDispatches(window.nfdData);
 </script>
 
 
