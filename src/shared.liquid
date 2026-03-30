@@ -39,57 +39,60 @@
   }
 
   window.nfdLoadDispatches = function(data) {
-    const tbody = document.getElementById('dispatch-tbody');
-    if (!tbody) {
+    const tbodies = document.querySelectorAll('[id="dispatch-tbody"]');
+    if (!tbodies.length) {
       return;
     }
 
     const features = (data && Array.isArray(data.features)) ? data.features : [];
-    tbody.innerHTML = '';
-    if (!features.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="py--20"><span class="title">No active incidents.</span></td></tr>';
-      return;
-    }
-
-    // Deduplicate by event_number and aggregate UNIT_IDs
-    const events = {};
-    features.forEach(f => {
-      const p = f.properties;
-      if (!events[p.event_number]) {
-        events[p.event_number] = {
-          ...p,
-          UNIT_IDs: [p.Unit_ID]
-        };
-      } else {
-        events[p.event_number].UNIT_IDs.push(p.Unit_ID);
+    tbodies.forEach(tbody => {
+      tbody.innerHTML = '';
+      if (!features.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="py--20"><span class="title">No active incidents.</span></td></tr>';
+        return;
       }
-    });
-    // Sort by DispatchDateTime descending
-    const sortedEvents = Object.values(events).sort((a, b) => {
-      const ta = new Date(a.DispatchDateTime).getTime();
-      const tb = new Date(b.DispatchDateTime).getTime();
-      return tb - ta;
-    });
-    sortedEvents
-      .forEach(ev => {
-        const tr = document.createElement('tr');
-        {% if size == 'wide' %}
-        tr.innerHTML = `
-                <td class="w--[33cqw]"><span class="description description--base lg:description--large">${ev.incident_type_id || ''}</span></td>
-                <td><span class="description description--base lg:description--large">${formatTime(ev.DispatchDateTime)}</span></td>
-                <td><span class="description description--base lg:description--large">${ev.PostalCode || ''}</span></td>
-                <td><span class="description description--base lg:description--large">${ev.UNIT_IDs.join(', ')}</span></td>
-                `;
-        {% else %}
-        tr.innerHTML = `
-                <td class="w--[33cqw]"><span class="description description--base lg:description--large" data-clamp="1">${ev.incident_type_id || ''}</span></td>
-                <td><span class="description description--base lg:description--large">${formatTime(ev.DispatchDateTime)}</span></td>
-                <td><span class="description description--base lg:description--large">${ev.PostalCode || ''}</span></td>
-                <td class="text--center"><span class="description description--base lg:description--large">${ev.UNIT_IDs.length}</span></td>
-                `;
-        {% endif %}
-        tbody.appendChild(tr);
+
+      // Deduplicate by event_number and aggregate UNIT_IDs
+      const events = {};
+      features.forEach(f => {
+        const p = f.properties;
+        if (!events[p.event_number]) {
+          events[p.event_number] = {
+            ...p,
+            UNIT_IDs: [p.Unit_ID]
+          };
+        } else {
+          events[p.event_number].UNIT_IDs.push(p.Unit_ID);
+        }
       });
+
+      // Sort by DispatchDateTime descending
+      const sortedEvents = Object.values(events).sort((a, b) => {
+        const ta = new Date(a.DispatchDateTime).getTime();
+        const tb = new Date(b.DispatchDateTime).getTime();
+        return tb - ta;
+      });
+      sortedEvents
+        .forEach(ev => {
+          const tr = document.createElement('tr');
+          {% if size == 'wide' %}
+          tr.innerHTML = `
+                  <td class="w--[33cqw]"><span class="description description--base lg:description--large">${ev.incident_type_id || ''}</span></td>
+                  <td><span class="description description--base lg:description--large">${formatTime(ev.DispatchDateTime)}</span></td>
+                  <td><span class="description description--base lg:description--large">${ev.PostalCode || ''}</span></td>
+                  <td><span class="description description--base lg:description--large">${ev.UNIT_IDs.join(', ')}</span></td>
+                  `;
+          {% else %}
+          tr.innerHTML = `
+                  <td class="w--[33cqw]"><span class="description description--base lg:description--large" data-clamp="1">${ev.incident_type_id || ''}</span></td>
+                  <td><span class="description description--base lg:description--large">${formatTime(ev.DispatchDateTime)}</span></td>
+                  <td><span class="description description--base lg:description--large">${ev.PostalCode || ''}</span></td>
+                  <td class="text--center"><span class="description description--base lg:description--large">${ev.UNIT_IDs.length}</span></td>
+                  `;
+          {% endif %}
+          tbody.appendChild(tr);
+        });
+    });
   };
 })();
 </script>
