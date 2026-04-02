@@ -1,37 +1,29 @@
-<div class="layout layout--row layout--top">
-  <table class="table table--condensed" id="dispatch-table" data-table-limit="true">
-    <thead>
-      <tr>
-        <th>
-          <span class="title title--small lg:title--base">Incident</span>
-        </th>
-        <th>
-          <span class="title title--small lg:title--base">Reported</span></th>
-        <th>
-          <span class="title title--small lg:title--base">Zip Code</span></th>
-        <th>
-          <span class="title title--small lg:title--base">Units Dispatched</span></th>
-      </tr>
-    </thead>
-    <tbody id="dispatch-tbody">
-      <tr>
-        <td colspan="5" class="text--center">Loading...</td>
-      </tr>
-    </tbody>
-  </table>
+<div class="layout layout--column layout--top">
+  <div class="column w--full">
+    <table class="table table--condensed" data-table-limit="true">
+      <thead>
+        <tr>
+          <th>
+            <span class="label title--small lg:title--base">Incident</span>
+          </th>
+          <th>
+            <span class="title title--small lg:title--base">Reported</span></th>
+          <th>
+            <span class="title title--small lg:title--base">Zip Code</span></th>
+          <th>
+            <span class="title title--small lg:title--base">Units Dispatched</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% render "table_rows" size: "wide", features: features, condensed_incidents: condensed_incidents, trmnl: trmnl %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div class="title_bar">
   <img class="image image-stroke" src="https://raw.githubusercontent.com/stephenyeargin/trmnl-nfd-incidents/refs/heads/main/assets/nfd.png" width="28" height="28">
   <span class="title">Nashville Fire Dept. Active Incidents</span>
-  <span class="instance">Updated {{ 'now' | date: '%s' | plus: trmnl.user.utc_offset | date: '%-I:%M %P %B %d, %Y' }}</span>
+  <span class="instance">Updated {{ 'now' | date: '%s' | plus: trmnl.user.utc_offset | date: '%-I:%M %P %B %-d, %Y' }}</span>
 </div>
 
-{% render "table_javascript" size: "wide", trmnl: trmnl %}
-
-<script>
-  window.nfdData = {
-    features: {{ features | json }}
-  };
-  window.nfdLoadDispatches(window.nfdData);
-</script>

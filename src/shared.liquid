@@ -1,99 +1,78 @@
-{% template table_javascript %}
-<script>
-(function() {
-  if (window.nfdLoadDispatches) {
-    return;
-  }
+{% template dispatch_row %}
+{% assign dispatch_seconds = dispatch_time_ms | divided_by: 1000 %}
+<tr>
+  {% if size == 'wide' %}
+  <td class="w--[33cqw]"><span class="description description--base lg:description--large">{{ incident_type }}</span></td>
+  <td><span class="description description--base lg:description--large">{{ dispatch_seconds | plus: trmnl.user.utc_offset | date: '%-I:%M %P' }}</span></td>
+  <td><span class="description description--base lg:description--large">{{ postal_code }}</span></td>
+  <td><span class="description description--base lg:description--large">{{ units_text }}</span></td>
+  {% else %}
+  <td class="w--[33cqw]"><span class="description description--base lg:description--large" data-clamp="1">{{ incident_type }}</span></td>
+  <td><span class="description description--base lg:description--large">{{ dispatch_seconds | plus: trmnl.user.utc_offset | date: '%-I:%M %P' }}</span></td>
+  <td><span class="description description--base lg:description--large">{{ postal_code }}</span></td>
+  <td class="text--center"><span class="description description--base lg:description--large">{{ unit_count }}</span></td>
+  {% endif %}
+</tr>
+{% endtemplate %}
 
-  const preferredTimeZone = '{{ trmnl.user.time_zone_iana | default: "" }}';
-
-  function resolveTimeZone(tz) {
-    if (!tz) {
-      return null;
-    }
-    try {
-      new Intl.DateTimeFormat([], { timeZone: tz });
-      return tz;
-    } catch (_err) {
-      return null;
-    }
-  }
-
-  function formatTime(ts) {
-    if (!ts) {
-      return '-';
-    }
-
-    const d = new Date(ts);
-    const options = {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    };
-    const safeTimeZone = resolveTimeZone(preferredTimeZone);
-    if (safeTimeZone) {
-      options.timeZone = safeTimeZone;
-    }
-
-    return d.toLocaleTimeString([], options);
-  }
-
-  window.nfdLoadDispatches = function(data) {
-    const tbodies = document.querySelectorAll('[id="dispatch-tbody"]');
-    if (!tbodies.length) {
-      return;
-    }
-
-    const features = (data && Array.isArray(data.features)) ? data.features : [];
-    tbodies.forEach(tbody => {
-      tbody.innerHTML = '';
-      if (!features.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="py--20"><span class="title">No active incidents.</span></td></tr>';
-        return;
-      }
-
-      // Deduplicate by event_number and aggregate UNIT_IDs
-      const events = {};
-      features.forEach(f => {
-        const p = f.properties;
-        if (!events[p.event_number]) {
-          events[p.event_number] = {
-            ...p,
-            UNIT_IDs: [p.Unit_ID]
-          };
-        } else {
-          events[p.event_number].UNIT_IDs.push(p.Unit_ID);
-        }
-      });
-
-      // Sort by DispatchDateTime descending
-      const sortedEvents = Object.values(events).sort((a, b) => {
-        const ta = new Date(a.DispatchDateTime).getTime();
-        const tb = new Date(b.DispatchDateTime).getTime();
-        return tb - ta;
-      });
-      sortedEvents
-        .forEach(ev => {
-          const tr = document.createElement('tr');
-          {% if size == 'wide' %}
-          tr.innerHTML = `
-                  <td class="w--[33cqw]"><span class="description description--base lg:description--large">${ev.incident_type_id || ''}</span></td>
-                  <td><span class="description description--base lg:description--large">${formatTime(ev.DispatchDateTime)}</span></td>
-                  <td><span class="description description--base lg:description--large">${ev.PostalCode || ''}</span></td>
-                  <td><span class="description description--base lg:description--large">${ev.UNIT_IDs.join(', ')}</span></td>
-                  `;
-          {% else %}
-          tr.innerHTML = `
-                  <td class="w--[33cqw]"><span class="description description--base lg:description--large" data-clamp="1">${ev.incident_type_id || ''}</span></td>
-                  <td><span class="description description--base lg:description--large">${formatTime(ev.DispatchDateTime)}</span></td>
-                  <td><span class="description description--base lg:description--large">${ev.PostalCode || ''}</span></td>
-                  <td class="text--center"><span class="description description--base lg:description--large">${ev.UNIT_IDs.length}</span></td>
-                  `;
-          {% endif %}
-          tbody.appendChild(tr);
-        });
-    });
-  };
-})();
-</script>
+{% template table_rows %}
+{% comment %}
+Prefer transformed data from src/transform.js in production runtime.
+This path is already deduplicated and includes UNIT_IDs per incident.
+{% endcomment %}
+{% if condensed_incidents != blank %}
+  {% assign sorted_incidents = condensed_incidents | sort: 'DispatchDateTime' | reverse %}
+  {% for ev in sorted_incidents %}
+    {% assign incident_type = ev.incident_type_id %}
+    {% assign postal_code = ev.PostalCode %}
+    {% assign dispatch_time_ms = ev.DispatchDateTime %}
+    {% assign units_text = ev.UNIT_IDs | join: ', ' %}
+    {% assign unit_count = ev.UNIT_IDs | size %}
+    {% render "dispatch_row" size: size, trmnl: trmnl, incident_type: incident_type, postal_code: postal_code, dispatch_time_ms: dispatch_time_ms, units_text: units_text, unit_count: unit_count %}
+  {% endfor %}
+{% elsif features != blank %}
+  {% comment %}
+  Local preview does not run transform.js, so we manually dedupe by event_number
+  and collect unique Unit_ID values directly from raw features.
+  {% endcomment %}
+  {% assign feature_properties = features | map: 'properties' %}
+  {% assign sorted_feature_properties = feature_properties | sort: 'DispatchDateTime' | reverse %}
+  {% assign seen_events = '|' %}
+  {% for ev in sorted_feature_properties %}
+    {% assign event_number = ev.event_number | append: '' %}
+    {% assign event_token = '|' | append: event_number | append: '|' %}
+    {% unless seen_events contains event_token %}
+      {% assign seen_events = seen_events | append: event_number | append: '|' %}
+      {% assign units_text = '' %}
+      {% assign seen_units = '|' %}
+      {% for unit_ev in feature_properties %}
+        {% if unit_ev.event_number == event_number %}
+          {% assign unit_id = unit_ev.Unit_ID | append: '' %}
+          {% assign unit_token = '|' | append: unit_id | append: '|' %}
+          {% unless seen_units contains unit_token %}
+            {% assign seen_units = seen_units | append: unit_id | append: '|' %}
+            {% if units_text == '' %}
+              {% assign units_text = unit_id %}
+            {% else %}
+              {% assign units_text = units_text | append: ', ' | append: unit_id %}
+            {% endif %}
+          {% endunless %}
+        {% endif %}
+      {% endfor %}
+      {% if units_text == '' %}
+        {% assign unit_count = 0 %}
+      {% else %}
+        {% assign unit_count = units_text | split: ', ' | size %}
+      {% endif %}
+      {% assign incident_type = ev.incident_type_id %}
+      {% assign postal_code = ev.PostalCode %}
+      {% assign dispatch_time_ms = ev.DispatchDateTime %}
+      {% render "dispatch_row" size: size, trmnl: trmnl, incident_type: incident_type, postal_code: postal_code, dispatch_time_ms: dispatch_time_ms, units_text: units_text, unit_count: unit_count %}
+    {% endunless %}
+  {% endfor %}
+{% else %}
+  <tr>
+    <td colspan="5" class="py--20"><span class="title title--base lg:title--large">No active incidents.</span></td>
+  </tr>
+{% endif %}
 {% endtemplate %}
