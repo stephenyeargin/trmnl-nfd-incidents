@@ -14,6 +14,7 @@ custom_fields:
 - keyname: author_bio
   name: About This Plugin
   field_type: author_bio
+  category: news
   description: Active incidents for the Nashville Fire Department.
   github_url: https://github.com/stephenyeargin/trmnl-nfd-incidents
   learn_more_url: https://www.nashville.gov/departments/fire/operations-division/active-incidents
