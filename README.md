@@ -1,6 +1,6 @@
 # Nashville Fire Department Active Incidents for TRMNL
 
-[![Build and Deploy](https://github.com/stephenyeargin/trmnl-nfd-incidents/actions/workflows/build.yml/badge.svg)](https://github.com/stephenyeargin/trmnl-nfd-incidents/actions/workflows/build.yml)
+[![Build and Deploy](https://github.com/stephenyeargin/trmnl-nfd-incidents/actions/workflows/build.yml/badge.svg)](https://github.com/stephenyeargin/trmnl-nfd-incidents/actions/workflows/build.yml) [![TRMNL Recipe Connections](https://trmnl-badges.gohk.xyz/badge/connections?recipe=89850)](https://trmnl.com/recipes/89850)
 
 ![promo](assets/promo.png)
 
