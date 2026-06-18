@@ -32,7 +32,6 @@ function transform(input) {
     });
 
   return {
-    ...input,
     condensed_incidents: condensedIncidents
   };
 }
