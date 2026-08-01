@@ -20,4 +20,5 @@ custom_fields:
   learn_more_url: https://www.nashville.gov/departments/fire/operations-division/active-incidents
   email_address: stephen@yearg.in
 name: Nashville Fire Department Active Incidents
+description: Live Nashville Fire Department active incident calls
 refresh_interval: 15
